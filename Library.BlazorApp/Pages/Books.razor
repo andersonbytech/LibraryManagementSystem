@@ -1,0 +1,72 @@
+﻿@page "/books"
+
+@using Library.Shared;
+@using System.Timers
+
+@inject HttpClient Http
+
+
+<h3>List of books</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Published Date</th>
+            <th>ISBN</th>
+            <th>Pages</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in books)
+        {
+            <tr>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td>@book.PublishedDate.ToShortDateString()</td>
+                <td>@book.ISBN</td>
+                <td>@book.Pages</td>
+                <td>
+                    <button class="btn btn-danger" @onclick="() => DeleteBook(book.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+    private List<Book>? books = new List<Book>();
+    private Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooksAsync();
+              
+        _timer = new Timer(5000); 
+        _timer.Elapsed += async (sender, e) => await LoadBooksAsync();
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+    }
+
+
+    private async Task LoadBooksAsync()
+    {
+        books = await Http.GetFromJsonAsync<List<Book>>("http://localhost:5116/api/books");
+        InvokeAsync(StateHasChanged); 
+    }
+
+    private async Task DeleteBook(int id)
+    {
+        var response = await Http.DeleteAsync($"http://localhost:5116/api/Books/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            books = books.Where(b => b.Id != id).ToList(); // Atualiza a lista de livros localmente
+        }
+        else
+        {
+            Console.WriteLine($"Erro ao deletar o livro com id {id}: {response.StatusCode}");
+        }
+    }
+}

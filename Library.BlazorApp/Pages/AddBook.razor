@@ -1,0 +1,46 @@
+﻿@page "/addbook"
+
+@using Library.Shared;
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Add New Book</h3>
+
+<EditForm Model="@newBook" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <InputText class="form-control" @bind-Value="newBook.Title" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Author</label>
+        <InputText class="form-control" @bind-Value="newBook.Author" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Published Date</label>
+        <InputDate class="form-control" @bind-Value="newBook.PublishedDate" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">ISBN</label>
+        <InputText class="form-control" @bind-Value="newBook.ISBN" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Pages</label>
+        <InputNumber class="form-control" @bind-Value="newBook.Pages" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Book</button>
+</EditForm>
+
+@code {
+    private AddBookCommand newBook = new();
+
+    private async Task HandleValidSubmit()
+    {
+        await Http.PostAsJsonAsync("http://localhost:5116/api/books", newBook);
+        Navigation.NavigateTo("/books",true);
+    }
+}
